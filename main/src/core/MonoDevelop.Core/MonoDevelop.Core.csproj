@@ -516,8 +516,6 @@
     <Compile Include="MonoDevelop.Core\UnixSystemInformation.cs" />
     <Compile Include="MonoDevelop.Core\ISystemInformationProvider.cs" />
     <Compile Include="MonoDevelop.Core.LogReporting\LogReportingService.cs" />
-    <Compile Include="MonoDevelop.Core.LogReporting\CrashReport.cs" />
-    <Compile Include="MonoDevelop.Core.LogReporting\CrashReporter.cs" />
     <Compile Include="MonoDevelop.Core.LogReporting\CrashEventArgs.cs" />
     <Compile Include="MonoDevelop.Core.LogReporting\CrashMonitor.cs" />
     <Compile Include="MonoDevelop.Core.LogReporting\ICrashMonitor.cs" />
