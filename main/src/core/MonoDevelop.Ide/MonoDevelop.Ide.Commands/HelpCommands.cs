@@ -69,7 +69,7 @@ namespace MonoDevelop.Ide.Commands
 			try {
 				var profile = MonoDevelop.Core.UserProfile.Current;
 				if (profile != null && System.IO.Directory.Exists (profile.LogDir))
-					System.Diagnostics.Process.Start (profile.LogDir);
+					DesktopService.OpenFolder (profile.LogDir, null);
 			} catch (Exception ex) {
 				MonoDevelop.Core.LoggingService.LogError ("Could not open the Log Directory", ex);
 			}
