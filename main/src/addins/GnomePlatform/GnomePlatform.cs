@@ -323,7 +323,7 @@ namespace MonoDevelop.Platform
 			TerminalRunnerHandler preferred_runner = null;
 			TerminalRunnerHandler fallback_runner = XtermRunner;
 
-			TerminalOpenFolderRunnerHandler preferedOpenFolderRunner = null;
+			TerminalOpenFolderRunnerHandler preferredOpenFolderRunner = null;
 			TerminalOpenFolderRunnerHandler fallbackOpenFolderRunner = XtermOpenFolderRunner;
 
 			if(GnomeDesktopApplication.isSandboxed)
@@ -335,28 +335,28 @@ namespace MonoDevelop.Platform
 			else if (!String.IsNullOrEmpty (Environment.GetEnvironmentVariable ("GNOME_DESKTOP_SESSION_ID"))) {
 				preferred_terminal = "gnome-terminal";
 				preferred_runner = GnomeTerminalRunner;
-				preferedOpenFolderRunner = GnomeTerminalOpenFolderRunner;
+				preferredOpenFolderRunner = GnomeTerminalOpenFolderRunner;
 			}
 			else if (!String.IsNullOrEmpty (Environment.GetEnvironmentVariable ("MATE_DESKTOP_SESSION_ID"))) {
 				preferred_terminal = "mate-terminal";
 				preferred_runner = GnomeTerminalRunner;
-				preferedOpenFolderRunner = GnomeTerminalOpenFolderRunner;
+				preferredOpenFolderRunner = GnomeTerminalOpenFolderRunner;
 			} 
 			else if (!String.IsNullOrEmpty (Environment.GetEnvironmentVariable ("KDE_SESSION_VERSION"))) { 
 				preferred_terminal = "konsole";
 				preferred_runner = KdeTerminalRunner;
-				preferedOpenFolderRunner = KdeTerminalOpenFolderRunner;
+				preferredOpenFolderRunner = KdeTerminalOpenFolderRunner;
 			}
 			else {
 				preferred_terminal = fallback_terminal;
 				preferred_runner = fallback_runner;
-				preferedOpenFolderRunner = fallbackOpenFolderRunner;
+				preferredOpenFolderRunner = fallbackOpenFolderRunner;
 			}
 
 			terminal_command = FindExec (preferred_terminal);
 			if (terminal_command != null) {
 				runner = preferred_runner;
-				openDirectoryRunner = preferedOpenFolderRunner;
+				openDirectoryRunner = preferredOpenFolderRunner;
 				return;
 			}
 			
