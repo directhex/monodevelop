@@ -236,11 +236,25 @@ namespace MonoDevelop.Platform
 		
 		private static string XtermRunner (string command, string args, string dir, string title, bool pause, Guid applicationId)
 		{
+			string extra_commands = pause
+				? BashPause
+				: String.Empty;
+
+			return String.Format (@" -title ""{4}"" -e bash -c ""cd {3} ; '{0}' {1} ; {2}""",
+				command,
+				EscapeArgs (args),
+				extra_commands,
+				EscapeDir (dir),
+				title);
+		}
+
+		private static string LXterminalRunner (string command, string args, string dir, string title, bool pause, Guid applicationId)
+		{
 			string extra_commands = pause 
 				? BashPause
 				: String.Empty;
 			
-			return String.Format (@" -title ""{4}"" -e bash -c ""cd {3} ; '{0}' {1} ; {2}""",
+			return String.Format (@" --title=""{4}"" --working-directory=""{3}"" -l -e ""{0} {1} ; {2}""",
 				command,
 				EscapeArgs (args),
 				extra_commands,
@@ -272,6 +286,10 @@ namespace MonoDevelop.Platform
 
 		private static string KdeTerminalOpenFolderRunner (string dir) {
 			return string.Format(@" --nofork --workdir=""{0}""", EscapeDir(dir));
+		}
+
+		private static string LXterminalOpenFolderRunner (string dir) {
+			return string.Format (@" --working-directory=""{0}""", EscapeDir(dir));
 		}
 
 		private static string EscapeArgs (string args)
@@ -308,7 +326,13 @@ namespace MonoDevelop.Platform
 			TerminalOpenFolderRunnerHandler preferedOpenFolderRunner = null;
 			TerminalOpenFolderRunnerHandler fallbackOpenFolderRunner = XtermOpenFolderRunner;
 
-			if (!String.IsNullOrEmpty (Environment.GetEnvironmentVariable ("GNOME_DESKTOP_SESSION_ID"))) {
+			if(GnomeDesktopApplication.isSandboxed)
+			{
+				preferred_terminal = "lxterminal";
+				preferred_runner = LXterminalRunner;
+				preferredOpenFolderRunner = LXterminalOpenFolderRunner;
+			}
+			else if (!String.IsNullOrEmpty (Environment.GetEnvironmentVariable ("GNOME_DESKTOP_SESSION_ID"))) {
 				preferred_terminal = "gnome-terminal";
 				preferred_runner = GnomeTerminalRunner;
 				preferedOpenFolderRunner = GnomeTerminalOpenFolderRunner;
