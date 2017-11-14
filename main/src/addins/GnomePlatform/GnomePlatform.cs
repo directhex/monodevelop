@@ -43,6 +43,10 @@ namespace MonoDevelop.Platform
 {
 	public class GnomePlatform : PlatformService
 	{
+		public override bool IsSandboxed {
+			get { return File.Exists ("/.flatpak-info"); }
+		}
+
 		static GnomePlatform ()
 		{
 		}
@@ -85,14 +89,14 @@ namespace MonoDevelop.Platform
 		}
 
 		public override void OpenFile (string filename) {
-			if(GnomeDesktopApplication.isSandboxed)
+			if(IsSandboxed)
 				GnomeDesktopApplication.FlatProcessStart (filename);
 			else
 				Process.Start (filename);
 		}
 
 		public override void OpenFolder (FilePath folderPath, FilePath [] selectFiles) {
-			if (GnomeDesktopApplication.isSandboxed)
+			if (IsSandboxed)
 				GnomeDesktopApplication.FlatProcessStart (folderPath);
 			else
 				Process.Start (folderPath);
@@ -326,7 +330,7 @@ namespace MonoDevelop.Platform
 			TerminalOpenFolderRunnerHandler preferredOpenFolderRunner = null;
 			TerminalOpenFolderRunnerHandler fallbackOpenFolderRunner = XtermOpenFolderRunner;
 
-			if(GnomeDesktopApplication.isSandboxed)
+			if(IsSandboxed)
 			{
 				preferred_terminal = "lxterminal";
 				preferred_runner = LXterminalRunner;
@@ -414,10 +418,6 @@ namespace MonoDevelop.Platform
 		{
 		}
 
-		public static bool isSandboxed {
-			get { return File.Exists ("/.flatpak-info"); }
-		}
-
 		string Command {
 			get { return Id; }
 		}
@@ -428,7 +428,7 @@ namespace MonoDevelop.Platform
 			if (Command.IndexOf ("%f") != -1) {
 				foreach (string s in files) {
 					string cmd = Command.Replace ("%f", "\"" + s + "\"");
-					if (isSandboxed)
+					if (Ide.DesktopService.isSandboxed)
 						FlatProcessStart (cmd);
 					else
 						Process.Start (cmd);
@@ -440,13 +440,13 @@ namespace MonoDevelop.Platform
 					fs [n] = "\"" + files [n] + "\"";
 				}
 				string cmd = Command.Replace ("%F", string.Join (" ", fs));
-				if (isSandboxed)
+				if (Ide.DesktopService.isSandboxed)
 					FlatProcessStart (cmd);
 				else
 					Process.Start (cmd);
 			} else {
 				foreach (string s in files) {
-					if (isSandboxed)
+					if (Ide.DesktopService.isSandboxed)
 						FlatProcessStart (Command, "\"" + s + "\"");
 							else
 						Process.Start (Command, "\"" + s + "\"");

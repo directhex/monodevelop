@@ -62,6 +62,12 @@ namespace MonoDevelop.Ide.Desktop
 			}
 		}
 
+		public virtual bool IsSandboxed {
+			get {
+				return false;
+			}
+		}
+
 		public virtual void Initialize ()
 		{
 		}

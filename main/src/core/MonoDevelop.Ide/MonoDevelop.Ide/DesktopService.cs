@@ -87,6 +87,12 @@ namespace MonoDevelop.Ide
 			}
 		}
 
+		public static bool isSandboxed {
+			get {
+				return platformService.IsSandboxed;
+			}
+		}
+
 		public static void SetGlobalProgress (double progress)
 		{
 			platformService.SetGlobalProgressBar (progress);
