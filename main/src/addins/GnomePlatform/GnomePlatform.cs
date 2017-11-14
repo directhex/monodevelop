@@ -34,6 +34,10 @@ using System.Diagnostics;
 using System.IO;
 using MonoDevelop.Core.Execution;
 using MonoDevelop.Core;
+using DBus;
+using org.freedesktop.DBus;
+using System.Linq;
+using System.Text;
 
 namespace MonoDevelop.Platform
 {
@@ -80,6 +84,19 @@ namespace MonoDevelop.Platform
 			return base.OnGetMimeTypeIsText (mimeType);
 		}
 
+		public override void OpenFile (string filename) {
+			if(GnomeDesktopApplication.isSandboxed)
+				GnomeDesktopApplication.FlatProcessStart (filename);
+			else
+				Process.Start (filename);
+		}
+
+		public override void OpenFolder (FilePath folderPath, FilePath [] selectFiles) {
+			if (GnomeDesktopApplication.isSandboxed)
+				GnomeDesktopApplication.FlatProcessStart (folderPath);
+			else
+				Process.Start (folderPath);
+		}
 
 		public override void ShowUrl (string url)
 		{
@@ -345,7 +362,7 @@ namespace MonoDevelop.Platform
 		{
 			string path = Environment.GetEnvironmentVariable ("PATH");
 			if (String.IsNullOrEmpty (path)) {
-				return new string [] { "/bin", "/usr/bin", "/usr/local/bin" };
+				return new string [] { "/app/bin", "/bin", "/usr/bin", "/usr/local/bin" };
 			}
 
 			// this is super lame, should handle quoting/escaping
@@ -372,7 +389,11 @@ namespace MonoDevelop.Platform
 		public GnomeDesktopApplication (string command, string displayName, bool isDefault) : base (command, displayName, isDefault)
 		{
 		}
-		
+
+		public static bool isSandboxed {
+			get { return File.Exists ("/.flatpak-info"); }
+		}
+
 		string Command {
 			get { return Id; }
 		}
@@ -383,7 +404,10 @@ namespace MonoDevelop.Platform
 			if (Command.IndexOf ("%f") != -1) {
 				foreach (string s in files) {
 					string cmd = Command.Replace ("%f", "\"" + s + "\"");
-					Process.Start (cmd);
+					if (isSandboxed)
+						FlatProcessStart (cmd);
+					else
+						Process.Start (cmd);
 				}
 			}
 			else if (Command.IndexOf ("%F") != -1) {
@@ -392,12 +416,43 @@ namespace MonoDevelop.Platform
 					fs [n] = "\"" + files [n] + "\"";
 				}
 				string cmd = Command.Replace ("%F", string.Join (" ", fs));
-				Process.Start (cmd);
+				if (isSandboxed)
+					FlatProcessStart (cmd);
+				else
+					Process.Start (cmd);
 			} else {
 				foreach (string s in files) {
-					Process.Start (Command, "\"" + s + "\"");
+					if (isSandboxed)
+						FlatProcessStart (Command, "\"" + s + "\"");
+							else
+						Process.Start (Command, "\"" + s + "\"");
 				}
 			}
 		}
+
+		[Interface ("org.freedesktop.Flatpak.Development")]
+		public interface IFlatpak : Introspectable
+		{
+			UInt32 HostCommand (byte [] cwd_path, byte [] [] argv, Dictionary<UInt32, UnixFD> fds, Dictionary<string, string> env, UInt32 flags);
+			void HostCommandSignal (UInt32 pid, UInt32 signal, bool to_process_group);
+			event HostCommandExitedHandler HostCommandExited;
+		}
+
+		public void FlatProcessStart(string cmd, string args) {
+			FlatProcessStart (cmd + " " + args);
+		}
+
+		public static void FlatProcessStart(string cmd) {
+			Bus conn = Bus.Session;
+			LoggingService.LogInfo ("UnixFD supported: {0}", conn.UnixFDSupported);
+			IFlatpak bus = conn.GetObject<IFlatpak> ("org.freedesktop.Flatpak", new ObjectPath ("/org/freedesktop/Flatpak/Development"));
+			if (String.IsNullOrWhiteSpace (cmd))
+				throw new ArgumentException ("command");
+			byte[][] cmdArray = ("xdg-open " + cmd).Split (' ').Select (s => Encoding.ASCII.GetBytes (s + '\0').ToArray ()).ToArray ();
+			UInt32 mypid = bus.HostCommand (new byte[]{}, cmdArray, new Dictionary<UInt32, UnixFD> () { }, new Dictionary<string, string> () { }, 0);
+		}
+
+    public delegate void HostCommandExitedHandler(UInt32 pid, UInt32 exit_status);
+
 	}
 }
