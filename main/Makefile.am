@@ -207,7 +207,7 @@ app-dir: all
 # we can't use the variables that are conditionally defined
 EXTRA_DIST = $(bin_SCRIPTS) $(desktop_DATA) $(appdata_DATA) $(pixmap_DATA) \
 	monodevelop.xml $(pkgconfig_in_files) external/Makefile.in \
-	Main.sln \
+	Main.sln MonoDevelop.props \
 	md.targets
 
 DISTCLEANFILES = monodevelop intltool-extract intltool-merge intltool-update \
